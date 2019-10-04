@@ -9,6 +9,11 @@ object ImperativeVsFunctionalExamples extends App  {
   println(fibTailRecuresive(7))
   println(fibRecursive(7))
 
+  def factorial(n: Int): Int = {
+    if (n == 0) 1 else n * factorial(n-1)
+  }
+
+
   def fibRecursive(n:Int) : Int =
     if ( n <= 0 ) 0
     else if (n == 1) 1
