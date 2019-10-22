@@ -1,5 +1,5 @@
 package manning.ch6_purely_func_state
-object BetterRng {
+object BetterRng extends App {
 
 
 }

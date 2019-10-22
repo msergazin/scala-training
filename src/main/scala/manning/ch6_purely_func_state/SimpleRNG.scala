@@ -7,11 +7,23 @@ case class SimpleRNG(seed: Long) extends RNG {
     val n = (newSeed >>> 16).toInt
     (n, nextRNG)
   }
+
+  def nonNegativeInt(rng: RNG): (Int, RNG) = {
+    val (i, r) = rng.nextInt
+    if (i < 0) (-(i + 1),r) else (i,r)
+  }
+
+
+  /*type Rand[+A] = RNG => (A, RNG)
+  val int: Rand[Int] = _.nextInt
+
+  def unit[A](a: A): Rand[A] =
+    rng => (a, rng)*/
 }
 
 object SimpleRNG extends App {
   val rng = SimpleRNG(42)
-  val (n1, rng2) = rng.nextInt
+  /*val (n1, rng2) = rng.nextInt
   println(n1)
   println(rng2)
 
@@ -30,5 +42,8 @@ object SimpleRNG extends App {
     val (i1, rng2) = rng.nextInt
     val (i2, rng3) = rng2.nextInt
     ((i1,i2), rng3)
-  }
+  }*/
+
+  println(rng.nonNegativeInt(rng))
+
 }
