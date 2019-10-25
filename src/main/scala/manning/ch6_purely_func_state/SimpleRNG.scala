@@ -1,5 +1,5 @@
 package manning.ch6_purely_func_state
-
+case class State[S, +A](run: S => (A,S))
 case class SimpleRNG(seed: Long) extends RNG {
   def nextInt: (Int, RNG) = {
     val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
@@ -59,10 +59,10 @@ case class SimpleRNG(seed: Long) extends RNG {
   val int: Rand[Int] = _.nextInt
   def unit[A](a: A): Rand[A] = rng => (a,rng)
   def map[A,B](s: Rand[A])(f: A => B): Rand[B] =
-    rng => {
-      val (a, rng2) = s(rng)
-      (f(a), rng2)
-    }
+  rng => {
+    val (a, rng2) = s(rng)
+    (f(a), rng2)
+  }
 
   def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A,B) => C): Rand[C] =
     rng => {
@@ -110,6 +110,8 @@ case class SimpleRNG(seed: Long) extends RNG {
       if (i + (n-1) - mod >= 0) unit(mod) else nonNegativeLessThan(n)
     }
   }
+
+  def rollDie: Rand[Int] = map(nonNegativeLessThan(6))(_ + 1)
 }
 
 object SimpleRNG extends App {
@@ -119,9 +121,10 @@ object SimpleRNG extends App {
 //  println(rng.int.apply(rng))
 //  println(rng.int apply rng)
 //  println(rng.randIntDouble.apply(rng))
-  println(rng.nonNegativeLessThan(4).apply(rng))
-  println(rng.nonNegativeLessThan(4).apply(rng))
+//  println(rng.nonNegativeLessThan(4).apply(rng))
+//  println(rng.nonNegativeLessThan(4).apply(rng))
 
+  println(rng.rollDie(rng)._1)
 //  println("list: " + rng.ints(1)(rng))
 //  println("list1: " + rng.ints(5)(rng))
 //  println("list2: " + rng.intsTailRecursive(5)(rng))

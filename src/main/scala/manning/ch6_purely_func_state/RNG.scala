@@ -1,6 +1,9 @@
 package manning.ch6_purely_func_state
 trait RNG {
-  type Rand[+A] = RNG => (A, RNG)
+//  type Rand[+A] = RNG => (A, RNG)
+  type Rand[A] = State[RNG,A]
+
+  type State[S, +A] = S => (A,S)
 
   def nextInt: (Int, RNG)
   def nonNegativeInt(rng: RNG): (Int, RNG)
@@ -11,6 +14,7 @@ trait RNG {
   def double3(rng: RNG): ((Double,Double,Double), RNG)
   def ints(count: Int)(rng: RNG): (List[Int], RNG)
   def intsTailRecursive(count: Int)(rng: RNG): (List[Int], RNG)
-  def map[A,B](s: Rand[A])(f: A => B): Rand[B]
+//  def map[A,B](s: Rand[A])(f: A => B): Rand[B]
+  def map[S,A,B](a: S => (A,S))(f: A => B): S => (B,S)
   def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A,B) => C): Rand[C]
 }
