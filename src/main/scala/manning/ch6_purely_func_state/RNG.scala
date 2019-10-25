@@ -11,4 +11,6 @@ trait RNG {
   def double3(rng: RNG): ((Double,Double,Double), RNG)
   def ints(count: Int)(rng: RNG): (List[Int], RNG)
   def intsTailRecursive(count: Int)(rng: RNG): (List[Int], RNG)
+  def map[A,B](s: Rand[A])(f: A => B): Rand[B]
+  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A,B) => C): Rand[C]
 }
