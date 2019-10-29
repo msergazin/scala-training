@@ -6,7 +6,25 @@ trait RNG {
   def nextInt: (Int, RNG)
   def rollDie: Rand[Int]
 }
+case class State[S, +A](run: S => (A, S)) {
+//  def map[B](f: A => B): State[S, B] =
+//    flatMap(a => unit(f(a)))
+//  def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] =
+//    flatMap(a => sb.map(b => f(a, b)))
+//  def flatMap[B](f: A => State[S, B]): State[S, B] = State(s => {
+//    val (a, s1) = run(s)
+//    f(a).run(s1)
+//  })
+}
+
+object State {
+  type Rand[A] = State[RNG, A]
+  def unit[S, A](a: A): State[S, A] =
+    State(s => (a, s))
+}
+
 object RNG {
+
   case class SimpleRNG(seed: Long) extends RNG {
     def nextInt: (Int, RNG) = {
       val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
@@ -144,6 +162,7 @@ object StateExanple extends App {
 //  println(rng.nonNegativeLessThan(4).apply(rng))
 
   println(rng.rollDie(rng)._1)
+  
 //  println("list: " + rng.ints(1)(rng))
 //  println("list1: " + rng.ints(5)(rng))
 //  println("list2: " + rng.intsTailRecursive(5)(rng))
