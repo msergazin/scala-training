@@ -85,7 +85,7 @@ object List {
     case Cons(0.0, _) => 0.0
     case Cons(x,xs) => x * product(xs)
   }*/
-  def apply[A](as: A*): List[A] = {
+  def   apply[A](as: A*): List[A] = {
     if (as.isEmpty) Nil
     else Cons(as.head, apply(as.tail: _*))
   }
