@@ -83,6 +83,43 @@ sealed trait Stream[+A] {
 
   def find(p: A => Boolean): Option[A] =
     filter(p).headOption
+
+  // This is more efficient than `cons(a, constant(a))` since it's just
+  // one object referencing itself.
+  def constant_1[A](a: A): Stream[A] = {
+    lazy val tail: Stream[A] = Cons(() => a, () => tail)
+    tail
+  }
+  def constant_1[A](a: A): Stream[A] = {
+    unfold(a)(n => Some(a,a))
+  }
+  def ones_1: Stream[Int] = constant_1(1)
+  def ones_2: Stream[Int] = unfold(1)(_ => Some(1,1))
+
+  def constant[A](a: A): Stream[A] = {
+    cons(a, constant(a))
+  }
+
+  def from(n: Int): Stream[Int] = {
+    cons(n, from(n+1))
+  }
+
+  def from_1(n: Int): Stream[Int] = {
+    unfold(n)(n => Some((n,n+1)))
+  }
+
+  def fibs(n: Int): Stream[Int] = {
+    def go(f0: Int, f1: Int): Stream[Int] =
+      cons(f0, go(f1, f0+f1))
+    go(0, 1)
+  }
+
+  /*It takes an initial state, and a function for producing both the next state and the next value in the generated stream*/
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
+    f(z) match {
+      case Some((h,s)) => cons(h, unfold(s)(f))
+      case None => empty
+    }
 }
 case object Empty extends Stream[Nothing]
 /*The arguments we’d like to pass unevaluated have a () => immediately before their
@@ -115,7 +152,7 @@ object Stream extends App with Stream[String] {
   assert(stream1.drop(1).headOption == Some(2))
   assert(stream3.take(1).headOption == Some(1))
 //  assert(stream4.takeWhile(_ % 2 == 0).toList == List(2,4,6))
-  println(stream4.takeWhile(_ % 2 == 0).toList)
+//  println(stream4.takeWhile(_ % 2 == 0).toList)
   assert(stream4.forAll(_ < 8) == true)
   assert(stream4.forAll(_ != 7) == false)
   assert(stream4.map(_ * 4).toList == List(4, 8, 12, 16, 20, 24, 28))
@@ -123,6 +160,8 @@ object Stream extends App with Stream[String] {
   assert(stream4.append(stream4).toList == List(1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7))
 
   val ones: Stream[Int] = Stream.cons(1, ones)
-  println(ones().toList)
-
+  assert(ones.exists(_ % 2 != 0) == true)
+  assert(ones.map(_ + 1).exists(_ % 2 == 0) == true)
+  //  println(ones.forAll(_ == 1)) //exception
+  assert(constant(1).exists(_ % 2 != 0) == true)
 }
