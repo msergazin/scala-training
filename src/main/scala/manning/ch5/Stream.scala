@@ -65,6 +65,22 @@ sealed trait Stream[+A] {
       else t().takeWhile(p)
     case _ => empty
   }
+  def zipWith[B,C](s2: Stream[B])(f: (A,B) => C): Stream[C] =
+    unfold((this, s2)) {
+      case (Cons(h1,t1), Cons(h2,t2)) =>
+        Some((f(h1(), h2()), (t1(), t2())))
+      case _ => None
+    }
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A],Option[B])] =
+    zipWithAll(s2)((_,_))
+
+  def zipWithAll[B, C](s2: Stream[B])(f: (Option[A], Option[B]) => C): Stream[C] =
+    Stream.unfold((this, s2)) {
+      case (Empty, Empty) => None
+      case (Cons(h, t), Empty) => Some(f(Some(h()), Option.empty[B]) -> (t(), empty[B]))
+      case (Empty, Cons(h, t)) => Some(f(Option.empty[A], Some(h())) -> (empty[A] -> t()))
+      case (Cons(h1, t1), Cons(h2, t2)) => Some(f(Some(h1()), Some(h2())) -> (t1() -> t2()))
+    }
   def exists(p: A => Boolean): Boolean =
     foldRight(false)((a, b) => p(a) || b)
   //    this match {
@@ -128,6 +144,18 @@ sealed trait Stream[+A] {
     f(z) match {
       case Some((h,s)) => cons(h, unfold(s)(f))
       case None => empty
+    }
+  /*
+  `s startsWith s2` when corresponding elements of `s` and `s2` are all equal,
+  until the point that `s2` is exhausted. If `s` is exhausted first, or we find an
+  element that doesn't match, we terminate early. Using non-strictness,
+  we can compose these three separate logical steps--the zipping,
+  the termination when the second stream is exhausted, and the termination if
+  a non-matching element is found or the first stream is exhausted.
+  */
+  def startsWith[A](s: Stream[A]): Boolean =
+    zipAll(s).takeWhile(!_._2.isEmpty) forAll {
+      case (h,h2) => h == h2
     }
 }
 case object Empty extends Stream[Nothing]
