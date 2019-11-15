@@ -25,14 +25,18 @@ sealed trait Stream[+A] {
     case Empty => None
     case Cons(h, t) => Some(h())
   }*/
-
   /*take(n) for returning the first n elements of a Stream*/
   def take(n: Int): Stream[A] = this match {
     case Cons(h, t) if n > 1 => cons(h(), t().take(n - 1))
     case Cons(h, _) if n == 1 => cons(h(), empty)
     case _ => empty
   }
-
+  def take_1(n: Int): Stream[A] =
+    unfold((this,n)){
+      case (Cons(h, _), 1) => Some((h(), (empty,0)))
+      case (Cons(h, t), _) => Some((h(), (t(),n - 1)))
+      case _ => None
+    }
   /*drop(n) for skipping the first n elements*/
   @annotation.tailrec
   final def drop(n: Int): Stream[A] = this match {
@@ -40,18 +44,27 @@ sealed trait Stream[+A] {
     case _ => this
   }
   /*returning all starting elements of a Stream that match the given predicate*/
+  def takeWhile_2(f: A => Boolean): Stream[A] =
+    /*
+    //my solution - slightly more complicated
+    unfold((this, f(this.headOption.get))){
+      case (Cons(h,t), true) =>Some((h(),(t(), true)))
+      case _ => None
+    }*/
+    unfold(this) {
+      case Cons(h,t) if f(h()) => Some((h(), t()))
+      case _ => None
+    }
   def takeWhile_1(f: A => Boolean): Stream[A] =
     foldRight(empty[A])((h,t) =>
       if (f(h)) cons(h,t)
       else      empty)
-
   def takeWhile(p: A => Boolean): Stream[A] = this match {
     case Cons(h,t) =>
       if (p(h())) cons(h(),t().takeWhile(p))
       else t().takeWhile(p)
     case _ => empty
   }
-
   def exists(p: A => Boolean): Boolean =
     foldRight(false)((a, b) => p(a) || b)
   //    this match {
@@ -74,46 +87,42 @@ sealed trait Stream[+A] {
   }*/
   def map[B](f: A => B): Stream[B] =
     foldRight(empty[B])((a,b) => cons(f(a), b))
+  def map_1[B](f: A => B): Stream[B] =
+    unfold(this){
+      case Cons(h,t) => Some((f(h()), t()))
+      case _ => None
+    }
   def filter(f: A => Boolean): Stream[A] =
     foldRight(empty[A])((a,b) => if (f(a)) cons(a,b) else b)
   def append[B>:A](s: => Stream[B]): Stream[B] =
     foldRight(s)((a,b) => cons(a,b))
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(empty[B])((a,b) => f(a) append b)
-
   def find(p: A => Boolean): Option[A] =
     filter(p).headOption
-
   // This is more efficient than `cons(a, constant(a))` since it's just
   // one object referencing itself.
   def constant_1[A](a: A): Stream[A] = {
     lazy val tail: Stream[A] = Cons(() => a, () => tail)
     tail
   }
-  def constant_1[A](a: A): Stream[A] = {
+  def constant_2[A](a: A): Stream[A] =
     unfold(a)(n => Some(a,a))
-  }
-  def ones_1: Stream[Int] = constant_1(1)
-  def ones_2: Stream[Int] = unfold(1)(_ => Some(1,1))
-
-  def constant[A](a: A): Stream[A] = {
+  def ones_1: Stream[Int] =
+    constant_1(1)
+  def ones_2: Stream[Int] =
+    unfold(1)(_ => Some(1,1))
+  def constant[A](a: A): Stream[A] =
     cons(a, constant(a))
-  }
-
-  def from(n: Int): Stream[Int] = {
+  def from(n: Int): Stream[Int] =
     cons(n, from(n+1))
-  }
-
-  def from_1(n: Int): Stream[Int] = {
+  def from_1(n: Int): Stream[Int] =
     unfold(n)(n => Some((n,n+1)))
-  }
-
   def fibs(n: Int): Stream[Int] = {
     def go(f0: Int, f1: Int): Stream[Int] =
       cons(f0, go(f1, f0+f1))
     go(0, 1)
   }
-
   /*It takes an initial state, and a function for producing both the next state and the next value in the generated stream*/
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
     f(z) match {
@@ -164,4 +173,6 @@ object Stream extends App with Stream[String] {
   assert(ones.map(_ + 1).exists(_ % 2 == 0) == true)
   //  println(ones.forAll(_ == 1)) //exception
   assert(constant(1).exists(_ % 2 != 0) == true)
+  assert(stream4.map_1(_ + 1).toList == List(2, 3, 4, 5, 6, 7, 8))
+  println(stream4.takeWhile_1(_ != 3).toList)
 }
