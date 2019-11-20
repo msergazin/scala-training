@@ -1,6 +1,6 @@
-package manning.ch5
+package fp_in_scala.ch5
 
-import manning.ch5
+import fp_in_scala.ch5
 
 
 

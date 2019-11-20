@@ -1,4 +1,4 @@
-package manning.ch2
+package fp_in_scala.ch2
 
 object MyModule {
   def abs(n: Int): Int =

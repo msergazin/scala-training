@@ -1,4 +1,4 @@
-package manning.ch3
+package fp_in_scala.ch3
 
 sealed trait Tree[+A]
 case class Leaf[A](value: A) extends Tree[A]

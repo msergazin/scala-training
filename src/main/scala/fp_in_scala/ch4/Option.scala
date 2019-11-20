@@ -1,4 +1,4 @@
-package manning.ch4
+package fp_in_scala.ch4
 
 sealed trait Option[+A] {
   /*Apply f if the Option is not None.*/

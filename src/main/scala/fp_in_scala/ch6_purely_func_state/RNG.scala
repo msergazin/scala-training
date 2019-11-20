@@ -1,4 +1,4 @@
-package manning.ch6_purely_func_state
+package fp_in_scala.ch6_purely_func_state
 
 case class SimpleRNG(seed: Long) extends RNG {
   def nextInt: (Int, RNG) = {

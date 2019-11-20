@@ -1,4 +1,4 @@
-package manning.ch3
+package fp_in_scala.ch3
 
 sealed trait List[+A]
 case object Nil extends List[Nothing]
@@ -73,6 +73,7 @@ object List {
     6
    */
 //  def sum(ints: List[Int]): Int = foldRight(ints, 0)(_ + _)
+//  def sum(ints: List[Int]): Int = foldLeft(ints, 0)((a,b)=>a+b)
   def sum(ints: List[Int]): Int = foldLeft(ints, 0)(_ + _)
 //  def product(ns: List[Double]) = foldRight(ns, 1.0)(_ * _)
   def product(ns: List[Double]) = foldLeft(ns, 1.0)(_ * _)

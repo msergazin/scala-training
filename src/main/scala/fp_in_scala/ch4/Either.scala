@@ -1,4 +1,4 @@
-package manning.ch4
+package fp_in_scala.ch4
 
 import scala.util.Try
 
