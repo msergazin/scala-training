@@ -16,6 +16,10 @@ object Par {
   def lazyUnit[A](a: => A): Par[A] = fork(unit(a))
   /**
    * run extracts a value from a Par by actually performing the computation
+   *
+   * Fully evaluates a given Par, spawning
+   * parallel computations as requested by
+   * fork and extracting the resulting value.
    * */
   def run[A](s: ExecutorService)(a: Par[A]): Future[A] = a(s)
   /**
@@ -95,6 +99,12 @@ object Par {
       def call = a(es).get
     })
   }
+  /**
+   * Would run hugeComputation in the main thread, which is exactly what we wanted to avoid by calling fork.
+   * It lets us delay instantiation of a computation until it’s actually needed.
+   * */
+  def delay[A](fa: => Par[A]): Par[A] =
+    es => fa(es)
   def sortPar(parList: Par[List[Int]]): Par[List[Int]] =
     /*map2(parList, unit(()))((a,_) => a.sorted)*/
     map(parList)(_.sorted)
@@ -108,14 +118,24 @@ object Par {
   }
   def sequence[A](ps: List[Par[A]]): Par[List[A]] =
     ps.foldRight[Par[List[A]]](unit(List()))((h,t) => map2(h,t)(_ :: _))
+
+  /**
+   * Implement parFilter, which filters elements of a list in parallel.
+   * */
+  def parFilter[A](l: List[A])(f: A => Boolean): Par[List[A]] = {
+    val pars: List[Par[List[A]]] =
+      l map (asyncF((a: A) => if (f(a)) List(a) else List()))
+    map(sequence(pars))(_.flatten) // convenience method on `List` for concatenating a list of lists
+  }
+  def equal[A](e: ExecutorService)(p: Par[A], p2: Par[A]): Boolean =
+    p(e).get == p2(e).get
 }
 
 object Parallelism extends App {
-  Par.asyncF((_: Int) + 2)
-
-//  def unit[A](a: A): Par[A]
-//  def map2[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C]
-//  def fork[A](a: => Par[A]): Par[A]
-//
-//  def run[A](a: Par[A]): A
+//  Par.asyncF((_: Int) + 2)
+  import Par._
+//  assert(map(unit(1))(_ + 1) == unit(2))
+  val a = lazyUnit(42 + 1)
+  val S = Executors.newFixedThreadPool(1)
+  println(Par.equal(S)(a, fork(a)))
 }
