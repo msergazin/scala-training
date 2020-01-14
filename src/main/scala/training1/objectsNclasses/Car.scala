@@ -1,4 +1,7 @@
 package training1.objectsNclasses
+
+import training1.objectsNclasses.constructors.Car
+
 //primary cons
 class Car(speed: Double, color: String) {
   def getSpeed(): Double = { speed }
